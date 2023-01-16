@@ -29,7 +29,7 @@ impl Materials {
 pub struct MaterialPlugin;
 
 impl MaterialPlugin {
-    fn init_materials(
+    pub fn init_materials(
         mut materials: ResMut<Materials>,
         mut bevy_materials: ResMut<Assets<StandardMaterial>>,
     ) {
