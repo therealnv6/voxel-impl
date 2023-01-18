@@ -7,11 +7,11 @@ pub mod plugin;
 pub mod voxel;
 
 pub const X_SIZE: usize = 16;
-pub const Y_SIZE: usize = 16;
+pub const Y_SIZE: usize = 256;
 pub const Z_SIZE: usize = 16;
 
 pub const X_SIZE_U32: u32 = 16;
-pub const Y_SIZE_U32: u32 = 16;
+pub const Y_SIZE_U32: u32 = 256;
 pub const Z_SIZE_U32: u32 = 16;
 
 pub type ChunkShape = ConstShape3u32<X_SIZE_U32, Y_SIZE_U32, Z_SIZE_U32>;

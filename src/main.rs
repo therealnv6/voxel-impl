@@ -1,4 +1,5 @@
 use bevy::prelude::PluginGroup;
+use bevy::render::settings::{WgpuSettings, PowerPreference, Backends};
 use bevy::window::{CursorGrabMode, WindowMode};
 use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
@@ -39,6 +40,11 @@ fn main() {
             },
             ..Default::default()
         }))
+        .insert_resource(WgpuSettings {
+            power_preference: PowerPreference::HighPerformance,
+            constrained_limits: None,
+            ..Default::default()
+        })
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(MaterialPlugin)
         .add_plugin(ChunkPlugin)
@@ -54,11 +60,8 @@ fn main() {
 
 pub fn debug_camera(
     mut commands: Commands,
-    _wireframe_config: ResMut<WireframeConfig>,
     asset_server: Res<AssetServer>,
 ) {
-    // wireframe_config.global = true;
-
     commands.spawn(PointLightBundle {
         point_light: PointLight {
             intensity: 1500.0,

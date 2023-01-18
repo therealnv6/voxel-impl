@@ -18,8 +18,6 @@ impl Chunk {
         let mut indices = Vec::new();
         let mut colors = Vec::new();
 
-        let _vertex_offset = 0; // Keep track of current vertex offset
-
         for x in 0..X_SIZE {
             for y in 0..Y_SIZE {
                 for z in 0..Z_SIZE {
@@ -27,11 +25,12 @@ impl Chunk {
                     if id > 0 {
                         let scale = 255.0 / X_SIZE as f32;
                         let color = [
-                            (x as f32 * scale) / 255.0,
-                            (y as f32 * scale) / 255.0,
-                            (z as f32 * scale) / 255.0,
+                            ((x as f32) * scale) / 255.0,
+                            ((y as f32) * scale) / 255.0,
+                            ((z as f32) * scale) / 255.0,
                             0.2,
                         ];
+
                         // Check for visible faces
                         if x == 0 || self.blocks[x as usize - 1][y as usize][z as usize] == 0 {
                             for i in 0..8 {
@@ -43,6 +42,8 @@ impl Chunk {
                                     CUBE_VERTICES[i + 2] + z as f32,
                                 ]);
                             }
+
+                            continue;
                         }
                         if x == X_SIZE - 1
                             || self.blocks[x as usize + 1][y as usize][z as usize] == 0
@@ -56,6 +57,8 @@ impl Chunk {
                                     CUBE_VERTICES[i + 2] + z as f32,
                                 ]);
                             }
+
+                            continue;
                         }
                         if y == 0 || self.blocks[x as usize][y as usize - 1][z as usize] == 0 {
                             for i in 0..8 {
@@ -67,6 +70,8 @@ impl Chunk {
                                     CUBE_VERTICES[i + 2] + z as f32,
                                 ]);
                             }
+
+                            continue;
                         }
                         if y == Y_SIZE - 1
                             || self.blocks[x as usize][y as usize + 1][z as usize] == 0
@@ -91,6 +96,8 @@ impl Chunk {
                                     CUBE_VERTICES[i + 2] + z as f32,
                                 ]);
                             }
+
+                            continue;
                         }
                         if z == Z_SIZE - 1
                             || self.blocks[x as usize][y as usize][z as usize + 1] == 0
@@ -104,11 +111,14 @@ impl Chunk {
                                     CUBE_VERTICES[i + 2] + z as f32,
                                 ]);
                             }
+
+                            continue;
                         }
                     }
                 }
             }
         }
+
         // Add the indices for all cubes
         for i in 0..vertices.len() / 24 {
             let offset = i * 24;

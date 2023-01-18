@@ -2,15 +2,16 @@ use std::f32::consts::PI;
 
 use bevy::{
     input::mouse::MouseMotion,
+    pbr::wireframe::WireframeConfig,
     prelude::{
         Camera, Component, EulerRot, EventReader, Input, KeyCode, Local, MouseButton, Quat, Query,
-        Res, StageLabel, Transform, Vec2, Vec3, With,
+        Res, ResMut, StageLabel, Transform, Vec2, Vec3, With,
     },
     text::Text,
     time::Time,
 };
 
-use crate::{PosText};
+use crate::PosText;
 
 #[derive(Component)]
 pub struct CameraController {
@@ -70,6 +71,7 @@ pub fn camera_controller(
     mut move_toggled: Local<bool>,
     mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,
     mut text: Query<&mut Text, With<PosText>>,
+    mut wireframe_config: ResMut<WireframeConfig>,
 ) {
     let dt = time.delta_seconds();
 
@@ -106,6 +108,10 @@ pub fn camera_controller(
         }
         if key_input.just_pressed(options.keyboard_key_enable_mouse) {
             *move_toggled = !*move_toggled;
+        }
+
+        if key_input.just_pressed(KeyCode::Grave) {
+            wireframe_config.global = !wireframe_config.global;
         }
 
         // Apply movement update
