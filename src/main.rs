@@ -7,14 +7,13 @@ use bevy::{
         AmbientLight, App, AssetServer, Camera3dBundle, Color, Commands, Component, Msaa,
         PointLight, PointLightBundle, Query, Res, ResMut, TextBundle, Transform, Vec3, With,
     },
-    render::settings::WgpuSettings,
-    text::{Text, TextAlignment, TextSection, TextStyle},
+    text::{Text, TextSection, TextStyle},
     ui::{PositionType, Style, UiRect, Val},
     window::{PresentMode, WindowDescriptor, WindowPlugin},
     DefaultPlugins,
 };
 use bevy_atmosphere::prelude::{AtmosphereCamera, AtmospherePlugin};
-use bevy_vfx_bag::{image::raindrops::RaindropsPlugin, BevyVfxBagPlugin, PostProcessingInput};
+
 use camera::CameraController;
 use chunk::plugin::ChunkPlugin;
 use material::MaterialPlugin;
@@ -55,7 +54,7 @@ fn main() {
 
 pub fn debug_camera(
     mut commands: Commands,
-    mut wireframe_config: ResMut<WireframeConfig>,
+    _wireframe_config: ResMut<WireframeConfig>,
     asset_server: Res<AssetServer>,
 ) {
     // wireframe_config.global = true;

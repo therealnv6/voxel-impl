@@ -6,8 +6,7 @@ use bevy::prelude::{
 use crate::{
     camera::CameraController,
     chunk::{X_SIZE, Y_SIZE, Z_SIZE},
-    debug_camera,
-    material::{self, Materials},
+    material::{Materials},
 };
 
 use super::container::Chunks;
@@ -54,7 +53,7 @@ impl ChunkPlugin {
         mut commands: Commands,
         mut chunks: ResMut<Chunks>,
         mut meshes: ResMut<Assets<Mesh>>,
-        materials: Res<Materials>,
+        _materials: Res<Materials>,
         mut bevy_materials: ResMut<Assets<StandardMaterial>>,
         mut query: Query<(&mut Transform, &CameraController)>,
         mut state: ResMut<State<ChunkLoadState>>,

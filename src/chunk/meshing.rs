@@ -18,7 +18,7 @@ impl Chunk {
         let mut indices = Vec::new();
         let mut colors = Vec::new();
 
-        let mut vertex_offset = 0; // Keep track of current vertex offset
+        let _vertex_offset = 0; // Keep track of current vertex offset
 
         for x in 0..X_SIZE {
             for y in 0..Y_SIZE {

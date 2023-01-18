@@ -10,7 +10,7 @@ use bevy::{
     time::Time,
 };
 
-use crate::{FpsText, PosText};
+use crate::{PosText};
 
 #[derive(Component)]
 pub struct CameraController {
