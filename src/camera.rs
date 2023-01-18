@@ -6,8 +6,11 @@ use bevy::{
         Camera, Component, EulerRot, EventReader, Input, KeyCode, Local, MouseButton, Quat, Query,
         Res, StageLabel, Transform, Vec2, Vec3, With,
     },
+    text::Text,
     time::Time,
 };
+
+use crate::{FpsText, PosText};
 
 #[derive(Component)]
 pub struct CameraController {
@@ -46,8 +49,8 @@ impl Default for CameraController {
             key_run: KeyCode::LShift,
             mouse_key_enable_mouse: MouseButton::Left,
             keyboard_key_enable_mouse: KeyCode::M,
-            walk_speed: 2.0,
-            run_speed: 6.0,
+            walk_speed: 20.0,
+            run_speed: 40.0,
             friction: 0.5,
             pitch: 0.0,
             yaw: 0.0,
@@ -66,6 +69,7 @@ pub fn camera_controller(
     key_input: Res<Input<KeyCode>>,
     mut move_toggled: Local<bool>,
     mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,
+    mut text: Query<&mut Text, With<PosText>>,
 ) {
     let dt = time.delta_seconds();
 
@@ -139,6 +143,14 @@ pub fn camera_controller(
                 .clamp(-PI / 2., PI / 2.);
             options.yaw -= mouse_delta.x * options.sensitivity * dt;
             transform.rotation = Quat::from_euler(EulerRot::ZYX, 0.0, options.yaw, options.pitch);
+        }
+
+        for mut text in &mut text {
+            let x = transform.translation.x;
+            let y = transform.translation.y;
+            let z = transform.translation.z;
+
+            text.sections[1].value = format!("{x:.2}, {y:.2}, {z:.2}");
         }
     }
 }

@@ -6,9 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.9.1"
+bevy = { version = "0.9.1", features = ["bevy_winit", "render"] }
 bevy-vfx-bag = "0.1.0"
 bevy_atmosphere = "0.5.0"
 bevy_hanabi = "0.5.1"
 bevy_rapier3d = "0.20.0"
+block-mesh = "0.2.0"
 noise = "0.8.2"
