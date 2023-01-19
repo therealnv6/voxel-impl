@@ -1,12 +1,11 @@
 use bevy::prelude::{
-    Assets, Color, Commands, IntoSystemDescriptor, Mesh, PbrBundle, Query, Res, ResMut, StageLabel,
+    Assets, Commands, IntoSystemDescriptor, Mesh, PbrBundle, Query, ResMut, StageLabel,
     StandardMaterial, State, SystemLabel, SystemSet, Transform, Vec3,
 };
 
 use crate::{
     camera::CameraController,
-    chunk::{X_SIZE, Y_SIZE, Z_SIZE},
-    material::Materials,
+    chunk::{X_SIZE, Z_SIZE},
 };
 
 use super::container::Chunks;
@@ -30,7 +29,7 @@ impl ChunkPlugin {
             transform.translation.y += 100.0;
             transform.translation.x += 60.0;
 
-            let render_distance = 4f32;
+            let render_distance = 6f32;
 
             let player_x = translation.x;
             let player_z = translation.z;
@@ -58,7 +57,7 @@ impl ChunkPlugin {
                         // material: material.bevy_material.clone(),
                         material: bevy_materials.add(StandardMaterial {
                             perceptual_roughness: 0.9,
-                            unlit: true,
+                            // unlit: true,
                             ..Default::default()
                         }),
                         transform: Transform::from_translation(Vec3::new(
@@ -70,8 +69,6 @@ impl ChunkPlugin {
                     });
                 }
             }
-
-            println!("{outer_most_x}");
 
             if let ChunkLoadState::Render = state.current() {
                 state.overwrite_set(ChunkLoadState::Wait).unwrap();

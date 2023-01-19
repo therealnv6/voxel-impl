@@ -2,7 +2,7 @@ use block_mesh::{MergeVoxel, VoxelVisibility};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct Voxel {
-    id: u8,
+    pub id: u8,
 }
 
 pub const VOID: Voxel = Voxel { id: 0 };

@@ -1,14 +1,12 @@
 use std::any::TypeId;
 
 use bevy::{
-    prelude::{AlphaMode, Assets, Color, Handle, Plugin, ResMut, Resource, StandardMaterial},
+    prelude::{Plugin, ResMut, Resource},
     utils::HashMap,
 };
 
 #[derive(Clone)]
-pub struct Material {
-    pub bevy_material: Handle<StandardMaterial>,
-}
+pub struct Material {}
 
 #[derive(Resource)]
 pub struct Materials {
@@ -26,38 +24,21 @@ impl Materials {
     }
 }
 
-pub struct MaterialPlugin;
+pub const MAT_COLORS: [[f32; 4]; 3] = [
+    [0.0, 137.0 / 255.0, 32.0 / 255.0, 0.0],            // void
+    [0.0, 137.0 / 255.0, 32.0 / 255.0, 1.0],            // grass
+    [145.0 / 255.0, 142.0 / 255.0, 133.0 / 255.0, 1.0], // stone
+];
 
 impl MaterialPlugin {
-    pub fn init_materials(
-        mut materials: ResMut<Materials>,
-        mut bevy_materials: ResMut<Assets<StandardMaterial>>,
-    ) {
+    pub fn init_materials(mut materials: ResMut<Materials>) {
         let mut id_map = HashMap::<u8, Material>::new();
         let mut type_map = HashMap::<TypeId, Material>::new();
 
         for (id, ty, material) in [
-            (
-                0,
-                TypeId::of::<Void>(),
-                Material {
-                    bevy_material: bevy_materials.add(StandardMaterial {
-                        base_color: Color::rgba(0.0, 137.0 / 255.0, 32.0 / 255.0, 0.0),
-                        alpha_mode: AlphaMode::Mask(0.5),
-                        ..Default::default()
-                    }),
-                },
-            ),
-            (
-                1,
-                TypeId::of::<Grass>(),
-                Material {
-                    bevy_material: bevy_materials.add(StandardMaterial {
-                        base_color: Color::rgb(0.0, 137.0 / 255.0, 32.0 / 255.0),
-                        ..Default::default()
-                    }),
-                },
-            ),
+            (0, TypeId::of::<Void>(), Material {}),
+            (1, TypeId::of::<Grass>(), Material {}),
+            (2, TypeId::of::<Stone>(), Material {}),
         ] {
             id_map.insert(id, material.clone());
             type_map.insert(ty, material.clone());
@@ -67,6 +48,8 @@ impl MaterialPlugin {
         materials.type_map = type_map;
     }
 }
+
+pub struct MaterialPlugin;
 
 impl Plugin for MaterialPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -81,3 +64,4 @@ impl Plugin for MaterialPlugin {
 // type structs
 pub struct Grass;
 pub struct Void;
+pub struct Stone;

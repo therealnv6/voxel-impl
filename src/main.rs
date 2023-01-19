@@ -1,12 +1,12 @@
 use bevy::prelude::PluginGroup;
-use bevy::render::settings::{WgpuSettings, PowerPreference, Backends};
+use bevy::render::settings::{PowerPreference, WgpuSettings};
 use bevy::window::{CursorGrabMode, WindowMode};
 use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
-    pbr::wireframe::{WireframeConfig, WireframePlugin},
+    pbr::wireframe::WireframePlugin,
     prelude::{
         AmbientLight, App, AssetServer, Camera3dBundle, Color, Commands, Component, Msaa,
-        PointLight, PointLightBundle, Query, Res, ResMut, TextBundle, Transform, Vec3, With,
+        PointLight, PointLightBundle, Query, Res, TextBundle, Transform, Vec3, With,
     },
     text::{Text, TextSection, TextStyle},
     ui::{PositionType, Style, UiRect, Val},
@@ -15,6 +15,7 @@ use bevy::{
 };
 use bevy_atmosphere::prelude::{AtmosphereCamera, AtmospherePlugin};
 
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use camera::CameraController;
 use chunk::plugin::ChunkPlugin;
 use material::MaterialPlugin;
@@ -25,7 +26,7 @@ pub mod camera;
 pub mod chunk;
 pub mod material;
 pub mod player;
-pub mod world;
+pub mod terrain;
 
 fn main() {
     App::new()
@@ -49,6 +50,7 @@ fn main() {
         .add_plugin(MaterialPlugin)
         .add_plugin(ChunkPlugin)
         .add_plugin(WireframePlugin)
+        .add_plugin(WorldInspectorPlugin)
         .insert_resource(Msaa { samples: 4 })
         // .add_plugin(BevyVfxBagPlugin)
         // .add_plugin(RaindropsPlugin)
@@ -58,10 +60,7 @@ fn main() {
         .run();
 }
 
-pub fn debug_camera(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
+pub fn debug_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(PointLightBundle {
         point_light: PointLight {
             intensity: 1500.0,
