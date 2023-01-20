@@ -5,13 +5,17 @@ use bevy::{
     pbr::wireframe::WireframeConfig,
     prelude::{
         Camera, Component, EulerRot, EventReader, Input, KeyCode, Local, MouseButton, Quat, Query,
-        Res, ResMut, StageLabel, Transform, Vec2, Vec3, With,
+        Res, ResMut, StageLabel, State, Transform, Vec2, Vec3, With,
     },
     text::Text,
     time::Time,
 };
 
-use crate::PosText;
+use crate::{
+    chunk::{container::Chunks, plugin::ChunkLoadState, Chunk, X_SIZE, Y_SIZE, Z_SIZE},
+    player::camera,
+    PosText,
+};
 
 #[derive(Component)]
 pub struct CameraController {
@@ -33,6 +37,7 @@ pub struct CameraController {
     pub pitch: f32,
     pub yaw: f32,
     pub velocity: Vec3,
+    pub last_chunk_pos: Option<(i32, i32, i32)>,
 }
 
 impl Default for CameraController {
@@ -56,6 +61,7 @@ impl Default for CameraController {
             pitch: 0.0,
             yaw: 0.0,
             velocity: Vec3::ZERO,
+            last_chunk_pos: None,
         }
     }
 }
@@ -160,6 +166,44 @@ pub fn camera_controller(
             let z = transform.translation.z;
 
             text.sections[1].value = format!("{x:.2}, {y:.2}, {z:.2}");
+        }
+    }
+}
+
+pub fn chunk_loading(
+    mut chunks: ResMut<Chunks>,
+    mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,
+    mut chunk_state: ResMut<State<ChunkLoadState>>,
+) {
+    let (mut transform, mut camera) = query.single_mut();
+    let transform = transform.as_mut();
+    let camera = camera.as_mut();
+
+    let translation = transform.translation;
+
+    let (x, y, z) = (
+        translation.x as i32,
+        translation.y as i32,
+        translation.z as i32,
+    );
+
+    let current = chunks.get_chunk_at(x, y, z);
+    let world_pos = current.world_pos.clone();
+
+    if camera.last_chunk_pos.is_none() {
+        camera.last_chunk_pos = Some((x, y, z));
+    }
+
+    let last_pos = camera.last_chunk_pos.unwrap();
+    let previous = chunks.get_chunk_at(last_pos.0, last_pos.1, last_pos.2);
+
+    if world_pos.x != previous.world_pos.x || world_pos.z != previous.world_pos.z {
+        camera.last_chunk_pos = Some((x, y, z));
+
+        if let ChunkLoadState::Wait = chunk_state.current() {
+            chunk_state
+                .set(ChunkLoadState::Render)
+                .expect("Something went wrong!");
         }
     }
 }

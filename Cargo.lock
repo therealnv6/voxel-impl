@@ -3868,6 +3868,7 @@ dependencies = [
  "leafwing-input-manager",
  "ndshape 0.3.0",
  "noise",
+ "rand 0.8.5",
 ]
 
 [[package]]

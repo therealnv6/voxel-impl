@@ -24,10 +24,12 @@ impl Materials {
     }
 }
 
-pub const MAT_COLORS: [[f32; 4]; 3] = [
+pub const MAT_COLORS: [[f32; 4]; 5] = [
     [0.0, 137.0 / 255.0, 32.0 / 255.0, 0.0],            // void
     [0.0, 137.0 / 255.0, 32.0 / 255.0, 1.0],            // grass
-    [145.0 / 255.0, 142.0 / 255.0, 133.0 / 255.0, 1.0], // stone
+    [145.0 / 255.0, 142.0 / 255.0, 133.0 / 255.0, 1.0], // stone,
+    [0.0, 0.0, 137.0 / 255.0, 0.63],                    // water
+    [255.0 / 255.0, 229.0 / 255.0, 153.0 / 255.0, 1.0], // sand
 ];
 
 impl MaterialPlugin {
@@ -39,6 +41,8 @@ impl MaterialPlugin {
             (0, TypeId::of::<Void>(), Material {}),
             (1, TypeId::of::<Grass>(), Material {}),
             (2, TypeId::of::<Stone>(), Material {}),
+            (3, TypeId::of::<Water>(), Material {}),
+            (4, TypeId::of::<Sand>(), Material {}),
         ] {
             id_map.insert(id, material.clone());
             type_map.insert(ty, material.clone());
@@ -65,3 +69,5 @@ impl Plugin for MaterialPlugin {
 pub struct Grass;
 pub struct Void;
 pub struct Stone;
+pub struct Water;
+pub struct Sand;

@@ -1,6 +1,6 @@
 use bevy::prelude::{
-    Assets, Commands, IntoSystemDescriptor, Mesh, PbrBundle, Query, ResMut, StageLabel,
-    StandardMaterial, State, SystemLabel, SystemSet, Transform, Vec3,
+    AlphaMode, Assets, Color, Commands, IntoSystemDescriptor, Mesh, PbrBundle, Query, ResMut,
+    StageLabel, StandardMaterial, State, SystemLabel, SystemSet, Transform, Vec3,
 };
 
 use crate::{
@@ -26,10 +26,10 @@ impl ChunkPlugin {
 
         if let Ok((mut transform, _)) = transform {
             let translation = transform.translation;
-            transform.translation.y += 100.0;
-            transform.translation.x += 60.0;
+            // transform.translation.y += 100.0;
+            // transform.translation.x += 60.0;
 
-            let render_distance = 6f32;
+            let render_distance = 12f32;
 
             let player_x = translation.x;
             let player_z = translation.z;
@@ -52,17 +52,21 @@ impl ChunkPlugin {
                         outer_most_x = chunk.world_pos.x;
                     }
 
+                    const SCALE: f32 = 1.0;
+
                     commands.spawn(PbrBundle {
                         mesh: handle,
                         material: bevy_materials.add(StandardMaterial {
-                            perceptual_roughness: 0.9,
+                            perceptual_roughness: 0.47,
+                            // alpha_mode: AlphaMode::Blend,
                             ..Default::default()
                         }),
                         transform: Transform::from_translation(Vec3::new(
-                            chunk.world_pos.x as f32,
-                            chunk.world_pos.y as f32,
-                            chunk.world_pos.z as f32,
-                        )),
+                            chunk.world_pos.x as f32 * SCALE,
+                            chunk.world_pos.y as f32 * SCALE,
+                            chunk.world_pos.z as f32 * SCALE,
+                        ))
+                        .with_scale(Vec3::new(SCALE, SCALE, SCALE)),
                         ..Default::default()
                     });
                 }
