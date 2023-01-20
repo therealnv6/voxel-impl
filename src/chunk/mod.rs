@@ -1,4 +1,4 @@
-use bevy::prelude::{IVec2, Mesh};
+use bevy::prelude::{Entity, IVec2, Mesh};
 use ndshape::{ConstShape, ConstShape2usize, ConstShape3u32};
 
 use rand::Rng;
@@ -23,11 +23,12 @@ pub type NoiseShape = ConstShape2usize<X_SIZE, Y_SIZE>;
 
 pub const HEIGHT_SIZE: usize = NoiseShape::SIZE;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Chunk {
     blocks: [u8; ChunkShape::SIZE as usize],
     pub world_pos: IVec2,
     pub mesh: Option<Mesh>,
+    pub entity: Entity,
 }
 
 impl Chunk {
@@ -55,6 +56,7 @@ impl Chunk {
             blocks,
             world_pos: IVec2::new(x, z),
             mesh: None,
+            entity: Entity::from_raw(0),
         }
     }
 

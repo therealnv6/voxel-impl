@@ -4,8 +4,8 @@ use bevy::{
     input::mouse::MouseMotion,
     pbr::wireframe::WireframeConfig,
     prelude::{
-        Camera, Component, EulerRot, EventReader, Input, KeyCode, Local, MouseButton, Quat, Query,
-        Res, ResMut, StageLabel, Transform, Vec2, Vec3, With,
+        Camera, Component, EulerRot, EventReader, Input, KeyCode, MouseButton, Quat, Query, Res,
+        ResMut, StageLabel, Transform, Vec2, Vec3, With,
     },
     text::Text,
     time::Time,
@@ -73,10 +73,7 @@ pub struct CameraStage;
 
 pub fn camera_controller(
     time: Res<Time>,
-    mut mouse_events: EventReader<MouseMotion>,
-    mouse_button_input: Res<Input<MouseButton>>,
     key_input: Res<Input<KeyCode>>,
-    mut move_toggled: Local<bool>,
     mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,
     mut text: Query<&mut Text, With<PosText>>,
     mut wireframe_config: ResMut<WireframeConfig>,
@@ -117,10 +114,6 @@ pub fn camera_controller(
             }
         }
 
-        if key_input.just_pressed(options.keyboard_key_enable_mouse) {
-            *move_toggled = !*move_toggled;
-        }
-
         if key_input.just_pressed(KeyCode::Grave) {
             wireframe_config.global = !wireframe_config.global;
         }
@@ -146,22 +139,6 @@ pub fn camera_controller(
             + options.velocity.y * dt * Vec3::Y
             + options.velocity.z * dt * forward;
 
-        // Handle mouse input
-        let mut mouse_delta = Vec2::ZERO;
-        if mouse_button_input.pressed(options.mouse_key_enable_mouse) || *move_toggled {
-            for mouse_event in mouse_events.iter() {
-                mouse_delta += mouse_event.delta;
-            }
-        }
-
-        if mouse_delta != Vec2::ZERO {
-            // Apply look update
-            options.pitch = (options.pitch - mouse_delta.y * 0.5 * options.sensitivity * dt)
-                .clamp(-PI / 2., PI / 2.);
-            options.yaw -= mouse_delta.x * options.sensitivity * dt;
-            transform.rotation = Quat::from_euler(EulerRot::ZYX, 0.0, options.yaw, options.pitch);
-        }
-
         for mut text in &mut text {
             let x = transform.translation.x;
             let y = transform.translation.y;
@@ -172,17 +149,37 @@ pub fn camera_controller(
     }
 }
 
+pub fn update_mouse(
+    time: Res<Time>,
+    mut mouse_events: EventReader<MouseMotion>,
+    mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,
+) {
+    let dt = time.delta_seconds();
+    let (mut transform, mut options) = query.single_mut();
+
+    let mut mouse_delta = Vec2::ZERO;
+
+    for mouse_event in mouse_events.iter() {
+        mouse_delta += mouse_event.delta;
+    }
+
+    if mouse_delta != Vec2::ZERO {
+        options.pitch = (options.pitch - mouse_delta.y * 0.5 * options.sensitivity * dt)
+            .clamp(-PI / 2., PI / 2.);
+        options.yaw -= mouse_delta.x * options.sensitivity * dt;
+        transform.rotation = Quat::from_euler(EulerRot::ZYX, 0.0, options.yaw, options.pitch);
+    }
+}
+
 pub fn chunk_loading(
     mut chunks: ResMut<Chunks>,
     mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,
-    // mut chunk_state: ResMut<State<ChunkLoadState>>,
 ) {
     let (mut transform, mut camera) = query.single_mut();
     let transform = transform.as_mut();
     let camera = camera.as_mut();
 
     let translation = transform.translation;
-
     let (x, z) = (translation.x as i32, translation.z as i32);
 
     let current = chunks.get_chunk_at([x, z]);
@@ -196,6 +193,7 @@ pub fn chunk_loading(
     let previous = chunks.get_chunk_at([last_pos.0, last_pos.1]);
 
     if world_pos.x != previous.world_pos.x || world_pos.y != previous.world_pos.y {
+        let mut chunks = chunks.clone();
         let render_distance = 8f32;
 
         let min_x = ((x / X_SIZE as i32) as f32 - render_distance) as i32;
@@ -203,14 +201,16 @@ pub fn chunk_loading(
         let min_z = ((z / Z_SIZE as i32) as f32 - render_distance) as i32;
         let max_z = ((z / Z_SIZE as i32) as f32 + render_distance) as i32;
 
-        for x in min_x..max_x {
-            for z in min_z..max_z {
-                let _chunk = chunks.get_domain_at([x, z]);
-                let linear = Chunks::linearize_domain([x, z]);
+        std::thread::spawn(move || {
+            for x in min_x..max_x {
+                for z in min_z..max_z {
+                    let _chunk = chunks.get_domain_at([x, z]);
+                    let linear = Chunks::linearize_domain([x, z]);
 
-                container::get_update_queue().queue(linear);
+                    container::get_update_queue().queue(linear);
+                }
             }
-        }
+        });
 
         camera.last_chunk_pos = Some((x, z));
     }

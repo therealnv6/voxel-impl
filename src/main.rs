@@ -55,6 +55,7 @@ fn main() {
         .add_plugin(AtmospherePlugin)
         .add_system(camera::camera_controller)
         .add_system(camera::chunk_loading)
+        .add_system(camera::update_mouse)
         .add_system(text_update_system)
         .run();
 }

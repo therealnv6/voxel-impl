@@ -4,11 +4,12 @@ use bevy::{
         Assets, Commands, Mesh, PbrBundle, ResMut, StageLabel, StandardMaterial, State,
         SystemLabel, SystemSet, Transform, Vec3,
     },
+    utils::hashbrown::HashSet,
 };
 
 use crate::chunk::container::DomainChunk;
 
-use super::container::{self, Chunks, loaded::LoadedChunks};
+use super::container::{self, loaded::LoadedChunks, Chunks};
 
 pub struct ChunkPlugin;
 pub struct ChunkStage;
@@ -27,13 +28,13 @@ impl ChunkPlugin {
         mut loaded_chunks: ResMut<LoadedChunks>,
     ) {
         let mut outer_most_x = 0;
-        let mut loaded = Vec::<i32>::new();
+        let mut loaded = HashSet::<i32>::new();
 
-        for linear in container::get_update_queue().pull() {
+        for linear in container::get_update_queue().pull(0..2) {
             let [x, z] = Chunks::delinearize(linear);
             let chunk = chunks.get_domain_at_mut([x, z]);
 
-            loaded.push(linear as i32);
+            loaded.insert(linear as i32);
 
             if loaded_chunks.is_chunk_loaded(chunk) {
                 continue;
@@ -48,20 +49,23 @@ impl ChunkPlugin {
 
             const SCALE: f32 = 1.0;
 
-            commands.spawn(PbrBundle {
-                mesh: handle,
-                material: bevy_materials.add(StandardMaterial {
-                    perceptual_roughness: 0.47,
+            let entity = commands
+                .spawn(PbrBundle {
+                    mesh: handle,
+                    material: bevy_materials.add(StandardMaterial {
+                        perceptual_roughness: 0.47,
+                        ..Default::default()
+                    }),
+                    transform: Transform::from_translation(Vec3::new(
+                        chunk.world_pos.x as f32 * SCALE,
+                        0.0,
+                        chunk.world_pos.y as f32 * SCALE,
+                    ))
+                    .with_scale(Vec3::new(SCALE, SCALE, SCALE)),
                     ..Default::default()
-                }),
-                transform: Transform::from_translation(Vec3::new(
-                    chunk.world_pos.x as f32 * SCALE,
-                    0.0,
-                    chunk.world_pos.y as f32 * SCALE,
-                ))
-                .with_scale(Vec3::new(SCALE, SCALE, SCALE)),
-                ..Default::default()
-            });
+                })
+                .id();
+            chunk.entity = entity;
         }
 
         if let ChunkLoadState::Render = state.current() {
@@ -69,6 +73,19 @@ impl ChunkPlugin {
         }
 
         loaded_chunks.replace(loaded);
+        loaded_chunks.pull_unload().iter().for_each(|chunk| {
+            let [x, z] = Chunks::delinearize(*chunk);
+            let chunk = chunks.get_domain_at_mut([x, z]);
+            let entity = commands.get_entity(chunk.entity);
+
+            if let Some(mut entity) = entity {
+                println!(
+                    "despawning chunk: {}, {}",
+                    chunk.world_pos.x, chunk.world_pos.y
+                );
+                entity.despawn();
+            }
+        });
     }
 }
 

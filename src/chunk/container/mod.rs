@@ -26,10 +26,13 @@ pub trait DomainChunk<const N: usize> {
     fn delinearize(id: i32) -> [i32; N];
 }
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Clone)]
 pub struct Chunks {
     chunks: HashMap<i32, Chunk>,
 }
+
+unsafe impl Send for Chunks {}
+unsafe impl Sync for Chunks {}
 
 impl DomainChunk<2> for Chunks {
     fn linearize_domain([x, z]: [i32; 2]) -> i32 {
@@ -38,23 +41,13 @@ impl DomainChunk<2> for Chunks {
 
     fn linearize([x, z]: [i32; 2]) -> i32 {
         let (x_size, z_size) = (X_SIZE as i32, Z_SIZE as i32);
-
-        let chunk_x = (x.div_euclid(x_size)) * x_size;
-        let chunk_z = (z.div_euclid(z_size)) * z_size;
-
-        let id = ((chunk_x / x_size) << 10) | ((chunk_z / z_size) as i32 & 1023);
-
-        id
+        (x / x_size) * 1024 + (z / z_size)
     }
 
     fn delinearize(id: i32) -> [i32; 2] {
         let x_size = X_SIZE as i32;
         let z_size = Z_SIZE as i32;
-
-        let x = (id >> 10) * x_size - (x_size / 2);
-        let z = (id & 1023) * z_size - (z_size / 2);
-
-        [x, z]
+        [(id / 1024) * x_size, (id % 1024) * z_size]
     }
 
     fn get_chunk_at(&mut self, [x, z]: [i32; 2]) -> &Chunk {
