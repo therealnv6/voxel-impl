@@ -164,7 +164,7 @@ mod test {
 
     #[test]
     pub fn chunk_test() {
-        let mut chunks = Chunks::new();
+        let mut chunks = Chunks::default();
 
         let chunk1 = chunks.get_chunk_at([5, 5]).world_pos;
         let chunk2 = chunks.get_chunk_at([0, 0]).world_pos;
@@ -193,10 +193,9 @@ mod test {
 
     #[test]
     pub fn chunk_domain_test() {
-        let mut chunks = Chunks::new();
+        let mut chunks = Chunks::default();
 
         for i in 0..10024 {
-            println!("{i}");
             let chunk1 = chunks.get_domain_at([i, i]).world_pos;
             let chunk2 = chunks.get_domain_at([i + 1, i + 1]).world_pos;
 

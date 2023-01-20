@@ -1,7 +1,20 @@
-use super::{Chunk, X_SIZE, Z_SIZE};
 use bevy::{prelude::Resource, utils::HashMap};
 use once_cell::sync::Lazy;
 use parking_lot::{RwLock, RwLockWriteGuard};
+
+use self::queue::ChunkUpdateQueue;
+
+use super::{Chunk, X_SIZE, Z_SIZE};
+
+pub mod loaded;
+pub mod queue;
+
+pub static CHUNK_UPDATE_QUEUE: Lazy<RwLock<ChunkUpdateQueue>> =
+    Lazy::new(|| RwLock::new(ChunkUpdateQueue::default()));
+
+pub fn get_update_queue<'a>() -> RwLockWriteGuard<'a, ChunkUpdateQueue> {
+    CHUNK_UPDATE_QUEUE.write()
+}
 
 pub trait DomainChunk<const N: usize> {
     fn get_domain_at(&mut self, dimensions: [i32; N]) -> &Chunk;
@@ -13,7 +26,7 @@ pub trait DomainChunk<const N: usize> {
     fn delinearize(id: i32) -> [i32; N];
 }
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct Chunks {
     chunks: HashMap<i32, Chunk>,
 }
@@ -73,7 +86,6 @@ impl DomainChunk<2> for Chunks {
     fn get_domain_at(&mut self, [x, z]: [i32; 2]) -> &Chunk {
         let id = ((x & 1023) << 10) | (z & 1023);
 
-        // println!("{}, {}", x * X_SIZE as i32, z * Z_SIZE as i32);
         if self.chunks.contains_key(&id) {
             return self.chunks.get(&id).unwrap();
         }
@@ -95,58 +107,5 @@ impl DomainChunk<2> for Chunks {
 
         self.chunks.insert(id, chunk);
         self.get_domain_at_mut([x, z])
-    }
-}
-
-impl Chunks {
-    pub fn new() -> Self {
-        Self {
-            chunks: HashMap::default(),
-        }
-    }
-}
-
-#[derive(Resource, Default)]
-pub struct LoadedChunks {
-    chunks: Vec<i32>,
-}
-
-impl LoadedChunks {
-    pub fn replace(&mut self, chunks: Vec<i32>) {
-        self.chunks = chunks;
-    }
-
-    pub fn is_chunk_loaded(&self, chunk: &Chunk) -> bool {
-        self.is_chunk_id_loaded(&(Chunks::linearize([chunk.world_pos.x, chunk.world_pos.y])))
-    }
-
-    pub fn is_chunk_id_loaded(&self, index: &i32) -> bool {
-        self.chunks.contains(index)
-    }
-}
-
-pub static CHUNK_UPDATE_QUEUE: Lazy<RwLock<ChunkUpdateQueue>> =
-    Lazy::new(|| RwLock::new(ChunkUpdateQueue::default()));
-
-pub fn get_update_queue<'a>() -> RwLockWriteGuard<'a, ChunkUpdateQueue> {
-    CHUNK_UPDATE_QUEUE.write()
-}
-
-#[derive(Debug, Default)]
-pub struct ChunkUpdateQueue {
-    chunks: Vec<i32>,
-}
-
-impl ChunkUpdateQueue {
-    pub fn queue(&mut self, chunk: i32) {
-        self.chunks.push(chunk);
-    }
-
-    pub fn pull(&mut self) -> Vec<i32> {
-        self.chunks.drain(..).collect()
-    }
-
-    pub fn has_queue(&self) -> bool {
-        !self.chunks.is_empty()
     }
 }

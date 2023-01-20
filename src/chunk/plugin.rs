@@ -8,7 +8,7 @@ use bevy::{
 
 use crate::chunk::container::DomainChunk;
 
-use super::container::{self, Chunks, LoadedChunks};
+use super::container::{self, Chunks, loaded::LoadedChunks};
 
 pub struct ChunkPlugin;
 pub struct ChunkStage;
@@ -36,7 +36,6 @@ impl ChunkPlugin {
             loaded.push(linear as i32);
 
             if loaded_chunks.is_chunk_loaded(chunk) {
-                println!("not rendering loaded chunk! {linear}");
                 continue;
             }
 
@@ -48,8 +47,6 @@ impl ChunkPlugin {
             }
 
             const SCALE: f32 = 1.0;
-
-            println!("{}, {}", chunk.world_pos.x, chunk.world_pos.y);
 
             commands.spawn(PbrBundle {
                 mesh: handle,
@@ -87,7 +84,7 @@ pub enum ChunkLoadState {
 impl bevy::app::Plugin for ChunkPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         // app.update();
-        app.insert_resource(Chunks::new())
+        app.insert_resource(Chunks::default())
             .insert_resource(LoadedChunks::default())
             .add_state(ChunkLoadState::Render)
             .add_system_set(
