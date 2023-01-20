@@ -12,7 +12,11 @@ use bevy::{
 };
 
 use crate::{
-    chunk::{container::Chunks, plugin::ChunkLoadState, Chunk, X_SIZE, Y_SIZE, Z_SIZE},
+    chunk::{
+        container::{self, Chunks, DomainChunk},
+        plugin::ChunkLoadState,
+        Chunk, X_SIZE, Y_SIZE, Z_SIZE,
+    },
     player::camera,
     PosText,
 };
@@ -37,7 +41,7 @@ pub struct CameraController {
     pub pitch: f32,
     pub yaw: f32,
     pub velocity: Vec3,
-    pub last_chunk_pos: Option<(i32, i32, i32)>,
+    pub last_chunk_pos: Option<(i32, i32)>,
 }
 
 impl Default for CameraController {
@@ -173,7 +177,7 @@ pub fn camera_controller(
 pub fn chunk_loading(
     mut chunks: ResMut<Chunks>,
     mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,
-    mut chunk_state: ResMut<State<ChunkLoadState>>,
+    // mut chunk_state: ResMut<State<ChunkLoadState>>,
 ) {
     let (mut transform, mut camera) = query.single_mut();
     let transform = transform.as_mut();
@@ -181,29 +185,35 @@ pub fn chunk_loading(
 
     let translation = transform.translation;
 
-    let (x, y, z) = (
-        translation.x as i32,
-        translation.y as i32,
-        translation.z as i32,
-    );
+    let (x, z) = (translation.x as i32, translation.z as i32);
 
-    let current = chunks.get_chunk_at(x, y, z);
+    let current = chunks.get_chunk_at([x, z]);
     let world_pos = current.world_pos.clone();
 
     if camera.last_chunk_pos.is_none() {
-        camera.last_chunk_pos = Some((x, y, z));
+        camera.last_chunk_pos = Some((x, z));
     }
 
     let last_pos = camera.last_chunk_pos.unwrap();
-    let previous = chunks.get_chunk_at(last_pos.0, last_pos.1, last_pos.2);
+    let previous = chunks.get_chunk_at([last_pos.0, last_pos.1]);
 
-    if world_pos.x != previous.world_pos.x || world_pos.z != previous.world_pos.z {
-        camera.last_chunk_pos = Some((x, y, z));
+    if world_pos.x != previous.world_pos.x || world_pos.y != previous.world_pos.y {
+        let render_distance = 8f32;
 
-        if let ChunkLoadState::Wait = chunk_state.current() {
-            chunk_state
-                .set(ChunkLoadState::Render)
-                .expect("Something went wrong!");
+        let min_x = ((x / X_SIZE as i32) as f32 - render_distance) as i32;
+        let max_x = ((x / X_SIZE as i32) as f32 + render_distance) as i32;
+        let min_z = ((z / Z_SIZE as i32) as f32 - render_distance) as i32;
+        let max_z = ((z / Z_SIZE as i32) as f32 + render_distance) as i32;
+
+        for x in min_x..max_x {
+            for z in min_z..max_z {
+                let _chunk = chunks.get_domain_at([x, z]);
+                let linear = Chunks::linearize_domain([x, z]);
+
+                container::get_update_queue().queue(linear);
+            }
         }
+
+        camera.last_chunk_pos = Some((x, z));
     }
 }

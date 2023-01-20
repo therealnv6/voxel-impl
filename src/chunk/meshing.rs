@@ -16,41 +16,12 @@ use super::{
 };
 
 impl Chunk {
-    pub fn debug_mesh(&self) -> Mesh {
-        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-        let mut vertices = Vec::new();
-        let mut indices = Vec::new();
-
-        for x in 0..X_SIZE {
-            for y in 0..Y_SIZE {
-                for z in 0..Z_SIZE {
-                    let id = self.get_block([x as u32, y as u32, z as u32]);
-                    if id > 0 {
-                        for i in 0..8 {
-                            let i = i * 3;
-                            vertices.push([
-                                CUBE_VERTICES[i] + x as f32,
-                                CUBE_VERTICES[i + 1] + y as f32,
-                                CUBE_VERTICES[i + 2] + z as f32,
-                            ]);
-                        }
-                        for i in 0..36 {
-                            indices.push(
-                                CUBE_INDICES[i] + (x * X_SIZE * Y_SIZE + y * Z_SIZE + z) as u32 * 8,
-                            );
-                        }
-                    }
-                }
-            }
+    pub fn get_mesh(&mut self) -> Mesh {
+        if self.mesh.is_none() {
+            self.mesh = Some(self.mesh());
         }
 
-        mesh.insert_attribute(
-            Mesh::ATTRIBUTE_POSITION,
-            VertexAttributeValues::Float32x3(vertices),
-        );
-        mesh.set_indices(Some(Indices::U32(indices)));
-
-        mesh
+        self.mesh.clone().unwrap()
     }
 
     pub fn mesh(&self) -> Mesh {

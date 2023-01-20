@@ -3868,6 +3868,8 @@ dependencies = [
  "leafwing-input-manager",
  "ndshape 0.3.0",
  "noise",
+ "once_cell",
+ "parking_lot",
  "rand 0.8.5",
 ]
 

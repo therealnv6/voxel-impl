@@ -158,29 +158,58 @@ struct CameraIdentifier;
 
 #[cfg(test)]
 mod test {
-    use crate::chunk::container::Chunks;
+    use crate::chunk::{
+        container::{Chunks, DomainChunk},
+        X_SIZE, Z_SIZE,
+    };
 
     #[test]
     pub fn chunk_test() {
         let mut chunks = Chunks::new();
 
-        let chunk1 = chunks.get_chunk_at(5, 3, 5).world_pos;
-        let chunk2 = chunks.get_chunk_at(0, 1, 0).world_pos;
-        let chunk3 = chunks.get_chunk_at(3, 5, 2).world_pos;
+        let chunk1 = chunks.get_chunk_at([5, 5]).world_pos;
+        let chunk2 = chunks.get_chunk_at([0, 0]).world_pos;
+        let chunk3 = chunks.get_chunk_at([3, 2]).world_pos;
+        let chunk4 = chunks.get_chunk_at([32, 31]).world_pos;
+        let chunk5 = chunks.get_chunk_at([-31, -41]).world_pos;
+
+        for i in 0..512 {
+            let chunk1 = chunks
+                .get_chunk_at([X_SIZE as i32 * i, Z_SIZE as i32 * i])
+                .world_pos;
+            let chunk2 = chunks
+                .get_chunk_at([X_SIZE as i32 * (i + 1), Z_SIZE as i32 * (i + 1)])
+                .world_pos;
+
+            assert_eq!(chunk1.x + 1, chunk2.x);
+            assert_eq!(chunk1.y + 1, chunk2.y);
+        }
+        // for i in
 
         assert_eq!(chunk1, chunk2);
         assert_eq!(chunk2, chunk3);
+        assert_ne!(chunk1, chunk4);
+        assert_ne!(chunk4, chunk5);
     }
 
     #[test]
     pub fn chunk_domain_test() {
         let mut chunks = Chunks::new();
 
-        let chunk1 = chunks.get_domain_at(0, 0, 0).world_pos;
-        let chunk2 = chunks.get_domain_at(0, 1, 0).world_pos;
-        let chunk3 = chunks.get_domain_at(0, 0, 1).world_pos;
+        for i in 0..10024 {
+            println!("{i}");
+            let chunk1 = chunks.get_domain_at([i, i]).world_pos;
+            let chunk2 = chunks.get_domain_at([i + 1, i + 1]).world_pos;
 
-        assert_ne!(chunk1, chunk2);
+            assert_eq!(chunk1.x + X_SIZE as i32, chunk2.x as i32);
+            assert_eq!(chunk1.y + Z_SIZE as i32, chunk2.y as i32);
+        }
+
+        let chunk1 = chunks.get_domain_at([0, 0]).world_pos;
+        let chunk2 = chunks.get_domain_at([0, 0]).world_pos;
+        let chunk3 = chunks.get_domain_at([0, 1]).world_pos;
+
+        assert_eq!(chunk1, chunk2);
         assert_ne!(chunk2, chunk3);
     }
 }
