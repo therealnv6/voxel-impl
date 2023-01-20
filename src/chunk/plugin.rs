@@ -54,10 +54,8 @@ impl ChunkPlugin {
 
                     commands.spawn(PbrBundle {
                         mesh: handle,
-                        // material: material.bevy_material.clone(),
                         material: bevy_materials.add(StandardMaterial {
                             perceptual_roughness: 0.9,
-                            // unlit: true,
                             ..Default::default()
                         }),
                         transform: Transform::from_translation(Vec3::new(

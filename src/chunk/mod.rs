@@ -7,13 +7,13 @@ pub mod meshing;
 pub mod plugin;
 pub mod voxel;
 
-pub const X_SIZE: usize = 34;
-pub const Y_SIZE: usize = 34;
-pub const Z_SIZE: usize = 34;
+pub const X_SIZE: usize = 64;
+pub const Y_SIZE: usize = 64;
+pub const Z_SIZE: usize = 64;
 
-pub const X_SIZE_U32: u32 = 34;
-pub const Y_SIZE_U32: u32 = 34;
-pub const Z_SIZE_U32: u32 = 34;
+pub const X_SIZE_U32: u32 = 64;
+pub const Y_SIZE_U32: u32 = 64;
+pub const Z_SIZE_U32: u32 = 64;
 
 pub type ChunkShape = ConstShape3u32<X_SIZE_U32, Y_SIZE_U32, Z_SIZE_U32>;
 pub type HeightShape = ConstShape2u32<X_SIZE_U32, Y_SIZE_U32>;
@@ -37,10 +37,12 @@ impl Chunk {
                 && (y > 0 && y < Y_SIZE_U32 - 1)
                 && (z > 0 && z < Z_SIZE_U32 - 1)
             {
-                if y > (Y_SIZE / 2) as u32 {
-                    blocks[i as usize] = 1;
-                } else {
-                    blocks[i as usize] = 2;
+                if (x % 2 == 0 && y % 2 == 0 && z % 2 == 0) {
+                    if y > (Y_SIZE / 2) as u32 {
+                        blocks[i as usize] = 1;
+                    } else {
+                        blocks[i as usize] = 2;
+                    }
                 }
             }
         }

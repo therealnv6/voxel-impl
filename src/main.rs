@@ -20,8 +20,6 @@ use camera::CameraController;
 use chunk::plugin::ChunkPlugin;
 use material::MaterialPlugin;
 
-use crate::player::PlayerEntity;
-
 pub mod camera;
 pub mod chunk;
 pub mod material;
@@ -88,7 +86,6 @@ pub fn debug_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
             // PostProcessingInput,
         ))
         .id();
-    commands.insert_resource(PlayerEntity { entity: camera });
 
     commands.spawn((
         // Create a TextBundle that has a Text with a single section.

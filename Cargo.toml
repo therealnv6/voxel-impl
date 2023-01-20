@@ -16,6 +16,7 @@ block-mesh = "0.2.0"
 fast-surface-nets = "0.2.0"
 height-mesh = "0.1.0"
 ilattice = { version = "0.2.0", features = ["morton-encoding"] }
+leafwing-input-manager = "0.8.0"
 ndshape = "0.3.0"
 noise = "0.8.2"
 

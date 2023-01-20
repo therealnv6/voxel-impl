@@ -88,24 +88,27 @@ pub fn camera_controller(
 
         // Handle key input
         let mut axis_input = Vec3::ZERO;
-        if key_input.pressed(options.key_forward) {
-            axis_input.z += 1.0;
+
+        for (key, axis) in [
+            (options.key_forward, &mut axis_input.z),
+            (options.key_right, &mut axis_input.x),
+            (options.key_up, &mut axis_input.y),
+        ] {
+            if key_input.pressed(key) {
+                *axis += 1.0;
+            }
         }
-        if key_input.pressed(options.key_back) {
-            axis_input.z -= 1.0;
+
+        for (key, axis) in [
+            (options.key_back, &mut axis_input.z),
+            (options.key_left, &mut axis_input.x),
+            (options.key_down, &mut axis_input.y),
+        ] {
+            if key_input.pressed(key) {
+                *axis -= 1.0;
+            }
         }
-        if key_input.pressed(options.key_right) {
-            axis_input.x += 1.0;
-        }
-        if key_input.pressed(options.key_left) {
-            axis_input.x -= 1.0;
-        }
-        if key_input.pressed(options.key_up) {
-            axis_input.y += 1.0;
-        }
-        if key_input.pressed(options.key_down) {
-            axis_input.y -= 1.0;
-        }
+
         if key_input.just_pressed(options.keyboard_key_enable_mouse) {
             *move_toggled = !*move_toggled;
         }

@@ -60,8 +60,6 @@ impl Chunk {
             }
         }
 
-        println!("{}, {}", colors.len(), num_vertices);
-
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
 
         for (key, value) in [
