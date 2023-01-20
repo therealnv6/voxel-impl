@@ -5,7 +5,7 @@ use bevy::{
     pbr::wireframe::WireframeConfig,
     prelude::{
         Camera, Component, EulerRot, EventReader, Input, KeyCode, Local, MouseButton, Quat, Query,
-        Res, ResMut, StageLabel, State, Transform, Vec2, Vec3, With,
+        Res, ResMut, StageLabel, Transform, Vec2, Vec3, With,
     },
     text::Text,
     time::Time,
@@ -14,10 +14,8 @@ use bevy::{
 use crate::{
     chunk::{
         container::{self, Chunks, DomainChunk},
-        plugin::ChunkLoadState,
-        Chunk, X_SIZE, Y_SIZE, Z_SIZE,
+        X_SIZE, Z_SIZE,
     },
-    player::camera,
     PosText,
 };
 

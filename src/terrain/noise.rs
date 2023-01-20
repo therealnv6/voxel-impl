@@ -4,7 +4,7 @@ use noise::utils::NoiseMapBuilder;
 use noise::utils::PlaneMapBuilder;
 use noise::Fbm;
 use noise::MultiFractal;
-use noise::NoiseFn;
+
 use noise::Perlin;
 
 use super::TerrainGenerator;

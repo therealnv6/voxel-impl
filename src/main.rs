@@ -16,7 +16,6 @@ use bevy::{
 };
 use bevy_atmosphere::prelude::{AtmosphereCamera, AtmospherePlugin};
 
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use camera::CameraController;
 use chunk::plugin::ChunkPlugin;
 use material::MaterialPlugin;

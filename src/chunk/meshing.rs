@@ -11,8 +11,8 @@ use ndshape::ConstShape;
 use crate::material::MAT_COLORS;
 
 use super::{
-    voxel::{Voxel, CUBE_INDICES, CUBE_VERTICES, VOID},
-    Chunk, ChunkShape, X_SIZE, Y_SIZE, Z_SIZE,
+    voxel::{Voxel, VOID},
+    Chunk, ChunkShape, X_SIZE,
 };
 
 impl Chunk {

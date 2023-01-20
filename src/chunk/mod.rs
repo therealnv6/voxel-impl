@@ -1,13 +1,9 @@
-use bevy::prelude::{IVec2, IVec3, Mesh};
-use height_mesh::ndshape::{ConstShape as _, ConstShape2u32};
-use ndshape::{ConstShape, ConstShape2usize, ConstShape3u32, ConstShape3usize};
-use noise::Perlin;
+use bevy::prelude::{IVec2, Mesh};
+use ndshape::{ConstShape, ConstShape2usize, ConstShape3u32};
+
 use rand::Rng;
 
-use crate::{
-    chunk::container::{Chunks, DomainChunk, CHUNK_UPDATE_QUEUE},
-    terrain::{self, DebugTerrainGenerator},
-};
+use crate::terrain::{self, DebugTerrainGenerator};
 
 pub mod container;
 pub mod meshing;

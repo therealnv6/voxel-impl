@@ -1,6 +1,6 @@
 use super::{Chunk, X_SIZE, Z_SIZE};
 use bevy::{prelude::Resource, utils::HashMap};
-use once_cell::sync::{Lazy, OnceCell};
+use once_cell::sync::Lazy;
 use parking_lot::{RwLock, RwLockWriteGuard};
 
 pub trait DomainChunk<const N: usize> {

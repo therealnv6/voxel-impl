@@ -1,16 +1,12 @@
 use bevy::{
     ecs::schedule::ShouldRun,
     prelude::{
-        AlphaMode, Assets, Color, Commands, IntoSystemDescriptor, Mesh, PbrBundle, Query, ResMut,
-        StageLabel, StandardMaterial, State, SystemLabel, SystemSet, Transform, Vec3,
+        Assets, Commands, Mesh, PbrBundle, ResMut, StageLabel, StandardMaterial, State,
+        SystemLabel, SystemSet, Transform, Vec3,
     },
 };
-use ndshape::ConstShape;
 
-use crate::{
-    camera::CameraController,
-    chunk::{container::DomainChunk, ChunkShape, X_SIZE, Z_SIZE},
-};
+use crate::chunk::container::DomainChunk;
 
 use super::container::{self, Chunks, LoadedChunks};
 
