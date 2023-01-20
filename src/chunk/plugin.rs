@@ -1,6 +1,9 @@
-use bevy::prelude::{
-    AlphaMode, Assets, Color, Commands, IntoSystemDescriptor, Mesh, PbrBundle, Query, ResMut,
-    StageLabel, StandardMaterial, State, SystemLabel, SystemSet, Transform, Vec3,
+use bevy::{
+    ecs::schedule::ShouldRun,
+    prelude::{
+        AlphaMode, Assets, Color, Commands, IntoSystemDescriptor, Mesh, PbrBundle, Query, ResMut,
+        StageLabel, StandardMaterial, State, SystemLabel, SystemSet, Transform, Vec3,
+    },
 };
 use ndshape::ConstShape;
 
@@ -15,14 +18,8 @@ pub struct ChunkPlugin;
 pub struct ChunkStage;
 
 impl ChunkPlugin {
-    pub fn render_queue_check(mut state: ResMut<State<ChunkLoadState>>) {
-        if let ChunkLoadState::Wait = state.current() {
-            if container::get_update_queue().has_queue() {
-                state
-                    .overwrite_set(ChunkLoadState::Render)
-                    .expect("Unable to set state!");
-            }
-        }
+    pub fn render_queue_check() -> ShouldRun {
+        return container::get_update_queue().has_queue().into();
     }
 
     pub fn render_blocks(
@@ -30,23 +27,9 @@ impl ChunkPlugin {
         mut chunks: ResMut<Chunks>,
         mut meshes: ResMut<Assets<Mesh>>,
         mut bevy_materials: ResMut<Assets<StandardMaterial>>,
-        mut query: Query<(&mut Transform, &CameraController)>,
         mut state: ResMut<State<ChunkLoadState>>,
         mut loaded_chunks: ResMut<LoadedChunks>,
     ) {
-        // let transform = query.get_single_mut();
-        // if let Ok((transform, _)) = transform {
-        // let translation = transform.translation;
-        // let render_distance = 12f32;
-
-        // let player_x = translation.x;
-        // let player_z = translation.z;
-
-        // let min_x = ((player_x / X_SIZE as f32) - render_distance) as i32;
-        // let max_x = ((player_x / X_SIZE as f32) + render_distance) as i32;
-        // let min_z = ((player_z / Z_SIZE as f32) - render_distance) as i32;
-        // let max_z = ((player_z / Z_SIZE as f32) + render_distance) as i32;
-
         let mut outer_most_x = 0;
         let mut loaded = Vec::<i32>::new();
 
@@ -76,12 +59,10 @@ impl ChunkPlugin {
                 mesh: handle,
                 material: bevy_materials.add(StandardMaterial {
                     perceptual_roughness: 0.47,
-                    // alpha_mode: AlphaMode::Blend,
                     ..Default::default()
                 }),
                 transform: Transform::from_translation(Vec3::new(
                     chunk.world_pos.x as f32 * SCALE,
-                    // chunk.world_pos.y as f32 * SCALE,
                     0.0,
                     chunk.world_pos.y as f32 * SCALE,
                 ))
@@ -95,7 +76,6 @@ impl ChunkPlugin {
         }
 
         loaded_chunks.replace(loaded);
-        // }
     }
 }
 
@@ -114,10 +94,10 @@ impl bevy::app::Plugin for ChunkPlugin {
         app.insert_resource(Chunks::new())
             .insert_resource(LoadedChunks::default())
             .add_state(ChunkLoadState::Render)
-            .add_system(ChunkPlugin::render_queue_check)
             .add_system_set(
                 SystemSet::on_enter(ChunkLoadState::Render)
-                    .with_system(ChunkPlugin::render_blocks.label(ChunkLoadState::Render)),
+                    .with_run_criteria(ChunkPlugin::render_queue_check)
+                    .with_system(ChunkPlugin::render_blocks),
             );
     }
 }
