@@ -1,10 +1,11 @@
 use bevy::{prelude::Resource, utils::HashMap};
+use ndshape::ConstShape;
 use once_cell::sync::Lazy;
 use parking_lot::{RwLock, RwLockWriteGuard};
 
 use self::queue::ChunkUpdateQueue;
 
-use super::{Chunk, X_SIZE, Z_SIZE};
+use super::{Chunk, ChunkShape, X_SIZE, Z_SIZE};
 
 pub mod loaded;
 pub mod queue;
@@ -37,7 +38,9 @@ unsafe impl Sync for Chunks {}
 
 impl Chunks {
     pub fn reset(&mut self) {
-        self.chunks.clear();
+        for chunk in self.chunks.values_mut() {
+            chunk.override_blocks([0u8; ChunkShape::SIZE as usize]);
+        }
     }
 }
 

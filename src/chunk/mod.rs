@@ -39,6 +39,10 @@ impl Chunk {
         }
     }
 
+    pub fn override_blocks(&mut self, blocks: [u8; ChunkShape::SIZE as usize]) {
+        self.blocks = blocks
+    }
+
     pub fn set_block_domain(&mut self, position: usize, id: u8) {
         self.blocks[position] = id;
     }

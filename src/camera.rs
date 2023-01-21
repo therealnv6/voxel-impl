@@ -219,7 +219,6 @@ pub fn chunk_loading(
 
         for chunk in loaded_chunks.pull_loaded() {
             let [x, z] = Chunks::delinearize_domain(chunk);
-            // println!("{x}: {min_x} -> <- {max_x}, {z}: {min_z} -> <- {max_z}");
 
             if (x < min_x || x > max_x) || (z < min_z || z > max_z) {
                 loaded_chunks.queue_unload(chunk);
