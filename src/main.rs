@@ -1,6 +1,7 @@
 // #![windows_subsystem = "windows"]
 use bevy::prelude::PluginGroup;
 use bevy::render::settings::{PowerPreference, WgpuSettings};
+use bevy::ui::{AlignContent, AlignItems};
 use bevy::window::{CursorGrabMode, WindowMode};
 use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
@@ -16,9 +17,13 @@ use bevy::{
 };
 use bevy_atmosphere::prelude::{AtmosphereCamera, AtmospherePlugin};
 
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use camera::CameraController;
+use chunk::container;
+use chunk::container::queue::ChunkUpdateQueue;
 use chunk::plugin::ChunkPlugin;
 use material::MaterialPlugin;
+use terrain::noise::NoiseData;
 
 pub mod camera;
 pub mod chunk;
@@ -33,7 +38,7 @@ fn main() {
             window: WindowDescriptor {
                 present_mode: PresentMode::Immediate,
                 cursor_grab_mode: CursorGrabMode::Confined,
-                cursor_visible: false,
+                cursor_visible: true,
                 mode: WindowMode::BorderlessFullscreen,
                 ..Default::default()
             },
@@ -44,11 +49,13 @@ fn main() {
             constrained_limits: None,
             ..Default::default()
         })
+        .insert_resource(NoiseData::new())
+        .register_type::<NoiseData>()
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(MaterialPlugin)
         .add_plugin(ChunkPlugin)
         .add_plugin(WireframePlugin)
-        // .add_plugin(WorldInspectorPlugin)
+        .add_plugin(WorldInspectorPlugin)
         .insert_resource(Msaa { samples: 4 })
         // .add_plugin(BevyVfxBagPlugin)
         // .add_plugin(RaindropsPlugin)
@@ -56,7 +63,9 @@ fn main() {
         .add_system(camera::camera_controller)
         .add_system(camera::chunk_loading)
         .add_system(camera::update_mouse)
+        .add_system(camera::reset_chunks)
         .add_system(text_update_system)
+        .add_system(chunk_update_system)
         .run();
 }
 
@@ -88,6 +97,13 @@ pub fn debug_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
         // PostProcessingInput,
     ));
 
+    let style = Style {
+        position_type: PositionType::Relative,
+        // align_content: AlignContent::FlexStart,
+        align_items: AlignItems::Center,
+        ..Default::default()
+    };
+
     commands.spawn((
         // Create a TextBundle that has a Text with a single section.
         TextBundle::from_sections([
@@ -104,7 +120,8 @@ pub fn debug_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
                 font_size: 20.0,
                 color: Color::GOLD,
             }),
-        ]),
+        ])
+        .with_style(style.clone()),
         FpsText,
     ));
 
@@ -125,15 +142,28 @@ pub fn debug_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
                 color: Color::GOLD,
             }),
         ])
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            position: UiRect {
-                bottom: Val::Percent(94.0),
-                ..Default::default()
-            },
-            ..Default::default()
-        }),
+        .with_style(style.clone()),
         PosText,
+    ));
+
+    commands.spawn((
+        TextBundle::from_sections([
+            TextSection::new(
+                "chunk updates: ",
+                TextStyle {
+                    font: asset_server.load("fonts/FiraMono-Medium.ttf"),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                },
+            ),
+            TextSection::from_style(TextStyle {
+                font: asset_server.load("fonts/FiraMono-Medium.ttf"),
+                font_size: 20.0,
+                color: Color::GOLD,
+            }),
+        ])
+        .with_style(style.clone()),
+        ChunkUpdatesText,
     ));
 }
 
@@ -147,11 +177,22 @@ fn text_update_system(diagnostics: Res<Diagnostics>, mut query: Query<&mut Text,
     }
 }
 
+fn chunk_update_system(mut query: Query<&mut Text, With<ChunkUpdatesText>>) {
+    let queue = container::get_update_queue();
+
+    for mut text in &mut query {
+        text.sections[1].value = format!("{} chunks", queue.len());
+    }
+}
+
 #[derive(Component)]
 pub struct FpsText;
 
 #[derive(Component)]
 pub struct PosText;
+
+#[derive(Component)]
+pub struct ChunkUpdatesText;
 
 #[derive(Component)]
 struct CameraIdentifier;

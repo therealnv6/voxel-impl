@@ -10,12 +10,15 @@ use bevy::{
     text::Text,
     time::Time,
 };
+use ndshape::ConstShape;
+use rand::Rng;
 
 use crate::{
     chunk::{
-        container::{self, Chunks, DomainChunk},
-        X_SIZE, Z_SIZE,
+        container::{self, loaded::LoadedChunks, Chunks, DomainChunk},
+        ChunkShape, NoiseShape, X_SIZE, X_SIZE_U32, Y_SIZE_U32, Z_SIZE, Z_SIZE_U32,
     },
+    terrain::{self, noise::NoiseData, DebugTerrainGenerator},
     PosText,
 };
 
@@ -171,13 +174,27 @@ pub fn update_mouse(
     }
 }
 
+pub fn reset_chunks(
+    mut chunks: ResMut<Chunks>,
+    mut loaded_chunks: ResMut<LoadedChunks>,
+    key_input: Res<Input<KeyCode>>,
+) {
+    if key_input.pressed(KeyCode::R) {
+        loaded_chunks.reset();
+        chunks.reset();
+    }
+}
+
 pub fn chunk_loading(
     mut chunks: ResMut<Chunks>,
+    mut loaded_chunks: ResMut<LoadedChunks>,
     mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,
+    noise_data: Res<NoiseData>,
 ) {
     let (mut transform, mut camera) = query.single_mut();
     let transform = transform.as_mut();
     let camera = camera.as_mut();
+    let render_distance = 8f32;
 
     let translation = transform.translation;
     let (x, z) = (translation.x as i32, translation.z as i32);
@@ -193,21 +210,49 @@ pub fn chunk_loading(
     let previous = chunks.get_chunk_at([last_pos.0, last_pos.1]);
 
     if world_pos.x != previous.world_pos.x || world_pos.y != previous.world_pos.y {
-        let mut chunks = chunks.clone();
-        let render_distance = 8f32;
-
         let min_x = ((x / X_SIZE as i32) as f32 - render_distance) as i32;
         let max_x = ((x / X_SIZE as i32) as f32 + render_distance) as i32;
         let min_z = ((z / Z_SIZE as i32) as f32 - render_distance) as i32;
         let max_z = ((z / Z_SIZE as i32) as f32 + render_distance) as i32;
 
+        let noise_data = noise_data.as_ref().clone();
+
+        for chunk in loaded_chunks.pull_loaded() {
+            let [x, z] = Chunks::delinearize_domain(chunk);
+            // println!("{x}: {min_x} -> <- {max_x}, {z}: {min_z} -> <- {max_z}");
+
+            if (x < min_x || x > max_x) || (z < min_z || z > max_z) {
+                loaded_chunks.queue_unload(chunk);
+            }
+        }
+
         std::thread::spawn(move || {
             for x in min_x..max_x {
                 for z in min_z..max_z {
-                    let _chunk = chunks.get_domain_at([x, z]);
+                    let mut blocks = [0u8; ChunkShape::SIZE as usize];
                     let linear = Chunks::linearize_domain([x, z]);
 
-                    container::get_update_queue().queue(linear);
+                    let terrain = terrain::noise::generate_terrain_3d::<ChunkShape, NoiseShape>(
+                        &noise_data,
+                        rand::thread_rng().gen_range(0..=5000),
+                        DebugTerrainGenerator,
+                    );
+
+                    assert_eq!(terrain.len(), ChunkShape::SIZE as usize);
+
+                    for i in 0..ChunkShape::SIZE {
+                        let [inner_x, inner_y, inner_z] = ChunkShape::delinearize(i as u32);
+                        let linearized = ChunkShape::linearize([inner_x, inner_z, inner_y]);
+
+                        if (inner_x > 0 && inner_x < X_SIZE_U32)
+                            && (inner_y > 0 && inner_y < Y_SIZE_U32)
+                            && (inner_z > 0 && inner_z < Z_SIZE_U32)
+                        {
+                            blocks[linearized as usize] = terrain[i as usize];
+                        }
+                    }
+
+                    container::get_update_queue().queue((linear, blocks));
                 }
             }
         });

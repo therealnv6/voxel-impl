@@ -22,6 +22,7 @@ pub trait DomainChunk<const N: usize> {
     fn get_chunk_at(&mut self, dimensions: [i32; N]) -> &Chunk;
     fn get_chunk_at_mut(&mut self, dimensions: [i32; N]) -> &mut Chunk;
     fn linearize_domain(dimensions: [i32; N]) -> i32;
+    fn delinearize_domain(id: i32) -> [i32; N];
     fn linearize(dimensions: [i32; N]) -> i32;
     fn delinearize(id: i32) -> [i32; N];
 }
@@ -34,9 +35,21 @@ pub struct Chunks {
 unsafe impl Send for Chunks {}
 unsafe impl Sync for Chunks {}
 
+impl Chunks {
+    pub fn reset(&mut self) {
+        self.chunks.clear();
+    }
+}
+
 impl DomainChunk<2> for Chunks {
     fn linearize_domain([x, z]: [i32; 2]) -> i32 {
         Chunks::linearize([x * X_SIZE as i32, z * Z_SIZE as i32])
+    }
+
+    fn delinearize_domain(id: i32) -> [i32; 2] {
+        let [x, z] = Chunks::delinearize(id);
+
+        [x / X_SIZE as i32, z / Z_SIZE as i32]
     }
 
     fn linearize([x, z]: [i32; 2]) -> i32 {
